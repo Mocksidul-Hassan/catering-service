@@ -2,8 +2,12 @@
 
 import 'dart:async';
 
+import 'package:e_cataring/controllers/get-user-data-controller.dart';
+import 'package:e_cataring/screens/admin-panel/admin-main-screen.dart';
 import 'package:e_cataring/screens/auth-ui/welcome-screen.dart';
+import 'package:e_cataring/screens/user-panel/main-screen.dart';
 import 'package:e_cataring/utils/app-constant.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
@@ -15,48 +19,67 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-
-
 class _SplashScreenState extends State<SplashScreen> {
-  @override 
-  void initState(){
+  User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
     super.initState();
-    Timer(Duration(seconds: 4), (){
-      Get.offAll(() => WelcomeScreen());
+    Timer(Duration(seconds: 4), () {
+      loggdin(context);
     });
   }
-  
-  
-  @override 
+
+  Future<void> loggdin(BuildContext context) async {
+    if (user != null) {
+      final GetUserDataController getUserDataController =
+          Get.put(GetUserDataController());
+      var userData = await getUserDataController.getUserData(user!.uid);
+
+      if (userData[0]['isAdmin'] == true) {
+        Get.offAll(() => AdminMainScreen());
+      } else {
+        Get.offAll(() => MainScreen());
+      }
+    } else {
+      Get.to(() => WelcomeScreen());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     //final Size=MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: AppConstant.appScendoryColor,
-    appBar: AppBar(
-      backgroundColor: AppConstant.appScendoryColor,
-      elevation: 0,
-    ),
-    body: Container(child: Column(
-      children: [
-        Expanded(
-          child: Container(
+      appBar: AppBar(
+        backgroundColor: AppConstant.appScendoryColor,
+        elevation: 0,
+      ),
+      body: Container(
+          child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: Get.width,
+              alignment: Alignment.center,
+              child:
+                  Lottie.asset('assets/images/Animation - 1703618528062.json'),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(bottom: 20.0),
             width: Get.width,
             alignment: Alignment.center,
-            child: Lottie.asset('assets/images/Animation - 1703618528062.json'),
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.only(bottom: 20.0),
-          width: Get.width,
-          alignment: Alignment.center,
-          child: Text(
-          AppConstant.appPoweredBy,
-        style: TextStyle(color: AppConstant.appTextColor,
-        fontSize: 12.0,
-        fontWeight: FontWeight.bold),
-        ),
-        )
-      ],)),
+            child: Text(
+              AppConstant.appPoweredBy,
+              style: TextStyle(
+                  color: AppConstant.appTextColor,
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.bold),
+            ),
+          )
+        ],
+      )),
     );
   }
 }
